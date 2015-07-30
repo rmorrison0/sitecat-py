@@ -10,7 +10,7 @@ class SiteCatPandas:
         if url:
             self.url = url
         else:
-            self.url = 'https://api.omniture.com/admin/1.3/rest/'
+            self.url = 'https://api.omniture.com/admin/1.4/rest/'
         self.username = username
         self.secret = secret
         self.omni = SiteCatPy(username, secret)
@@ -19,13 +19,13 @@ class SiteCatPandas:
         """
         Read already queued report by report_id
         """
-        jdata = self.omni.make_request('Report.GetReport',
+        jdata = self.omni.make_request('Report.Get',
                                        {'reportID': report_id})
         df = self.df_from_sitecat_raw(jdata)
         return df
 
     def read_sc(self, report_suite_id, date_from, date_to, metrics,
-                date_granularity='day', elements=None, segment_id=None,
+                date_granularity='day', elements=None, segment_ids=None,
                 max_queue_checks=None, queue_check_freq=None,
                 queue_only=False):
         """read data report from SiteCatalyst, return as dataframe."""
@@ -37,9 +37,9 @@ class SiteCatPandas:
             'metrics': [{'id': metric} for metric in metrics],
         }
         if elements:
-            report_description['elements'] = elements
-        if segment_id:
-            report_description['segment_id'] = segment_id
+            report_description['elements'] = [{'id': element} for element in elements]
+        if segment_ids:
+            report_description['segments'] = [{'id': segment_id} for segment_id in segment_ids]
         return self.read_sc_api(report_description=report_description,
                                 max_queue_checks=max_queue_checks,
                                 queue_check_freq=queue_check_freq,

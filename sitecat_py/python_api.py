@@ -16,7 +16,7 @@ class SiteCatPy:
         if url:
             self.url = url
         else:
-            self.url = 'https://api.omniture.com/admin/1.3/rest/'
+            self.url = 'https://api.omniture.com/admin/1.4/rest/'
         self.username = username
         self.secret = secret
 
@@ -62,9 +62,8 @@ class SiteCatPy:
             # sometimes, seem to complain about repeated Nonce.
             queued_request = self.make_request(method, request_data)
             if 'error' not in queued_request:
-                status = queued_request['status']
                 break
-        if status.startswith('error'):
+        if 'error' in queued_request:
             raise Exception('Invalid request: %s' % queued_request)
         return queued_request['reportID']
 
@@ -75,14 +74,16 @@ class SiteCatPy:
         for queue_check in range(max_queue_checks):
             time.sleep(queue_check_freq)
             print('queue check %s' % (queue_check + 1))
-            if self.is_report_done(reportID):
+            report = self.make_request('Report.Get',
+                                       {'reportID': reportID})
+            if 'error' not in report:
                 break
-        else:
+        if 'error' in report:
             raise Exception('max_queue_checks reached!!')
-        report = self.make_request('Report.GetReport',
-                                   {'reportID': reportID})
+
         return report
 
+    #not used
     def is_report_done(self, report_id):
         job_status = self.make_request('Report.GetStatus',
                                        {'reportID': report_id})
@@ -170,10 +171,7 @@ class SiteCatPy:
                 'reportDescription': report_description,
             }
         }
-        if 'elements' in report_description:
-            method = 'Report.QueueTrended'
-        else:
-            method = 'Report.QueueOvertime'
+        method = 'Report.Queue'
         if queue_only:
             return self.make_report_request(method, **kwargs)
         else:
