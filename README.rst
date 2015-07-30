@@ -12,7 +12,6 @@ Pandas example usage::
     secret = 'my_shared_secret''
     sc_pd = SiteCatPandas(username, secret)
 
-    elements = [{"id": "product", "classification": "Product Category"}]
     df = sc_pd.read_sc(report_suite_id='my_report_suite',
                        date_from='2015-04-01',
                        date_to='2015-04-02',
